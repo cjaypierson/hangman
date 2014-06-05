@@ -1,7 +1,7 @@
 class Hangman
 
-	def letters
-		@letters = ('a'..'z').to_a
+	def set_alphabet
+		('a'..'z').to_a
 	end
 
 	def pick_word
@@ -16,23 +16,60 @@ class Hangman
 	end
 
 	def check_guess(guess, word)
-		if word.include?(guess)
-			puts "You guessed one!"
+		unless @letters.include?(guess)
+			puts "You already guessed #{guess}, please guess again."
+			guess_letter
 		else
-			puts "nope"
+			if word.include?(guess)
+				word.each_with_index do |letter, index|
+					if letter == guess
+						update_guessed_word(guess, index)
+					end
+				end
+				puts "Good job! #{show_guessed_word(@guessed_word)}"
+			else
+				add_wrong_letters(guess)
+				puts "Sorry there is no #{guess}"
+			end
 		end
+		@letters.delete(guess)
 	end
 
-	def show_guessed_word(word)
-		@guessed_word = Array.new(word.size, "_")
+	def add_wrong_letters(letter)
+		@wrong_letters ||= []
+		@wrong_letters << letter
+	end
+
+	def set_guessed_word(word)
+		Array.new(word.size, "_")
+	end
+
+	def update_guessed_word(guess, index)
+		@guessed_word[index] = guess
+	end
+
+	def show_guessed_word(guessed_word)
 		puts @guessed_word.inspect
 	end
 
+	def winner?
+		if !@guessed_word.include?("_")
+			puts "We've got a winner!"
+			true
+		else
+			false
+		end
+	end
+
 	def play
+		@letters = set_alphabet
 		word = pick_word
-		show_guessed_word(word)
-		guess = guess_letter
-		check_guess(guess, word)
+		@guessed_word = set_guessed_word(word)
+		until winner?
+			show_guessed_word(@guessed_word)
+			guess = guess_letter
+			check_guess(guess, word)
+		end
 	end
 end
 
