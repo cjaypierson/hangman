@@ -17,7 +17,7 @@ class Hangman
 
 	def check_guess(guess, word)
 		unless @letters.include?(guess)
-			puts "You already guessed #{guess}, please guess again."
+			puts "That is not a valid guess, please guess again."
 			guess_letter
 		else
 			if word.include?(guess)
@@ -28,15 +28,15 @@ class Hangman
 				end
 				puts "Good job! #{show_guessed_word(@guessed_word)}"
 			else
-				add_wrong_letters(guess)
 				puts "Sorry there is no #{guess}"
+				add_wrong_letters(guess)
 			end
+			@letters.delete(guess)
 		end
-		@letters.delete(guess)
+
 	end
 
 	def add_wrong_letters(letter)
-		@wrong_letters ||= []
 		@wrong_letters << letter
 	end
 
@@ -61,14 +61,34 @@ class Hangman
 		end
 	end
 
+	def guesses_remaining
+		10 - @wrong_letters.size
+	end
+
+	def loser?
+		if guesses_remaining == 0
+			puts "You lost.  The word was #{@word.join}"
+			true
+		else
+			false
+		end
+	end
+
+	def game_over?
+		winner? || loser?
+	end
+
 	def play
 		@letters = set_alphabet
-		word = pick_word
-		@guessed_word = set_guessed_word(word)
-		until winner?
+		@word = pick_word
+		@guessed_word = set_guessed_word(@word)
+		@wrong_letters ||= []
+		until game_over?
 			show_guessed_word(@guessed_word)
+			puts "#{guesses_remaining} guesses left"
+			puts "Incorrect letters: #{@wrong_letters}"
 			guess = guess_letter
-			check_guess(guess, word)
+			check_guess(guess, @word)
 		end
 	end
 end
