@@ -1,0 +1,42 @@
+--- !ruby/object:Hangman
+letters:
+- c
+- f
+- g
+- h
+- j
+- k
+- l
+- n
+- p
+- q
+- s
+- t
+- v
+- w
+- x
+- y
+- z
+word:
+- O
+- s
+- c
+- e
+- o
+- l
+- a
+guessed_word:
+- _
+- _
+- _
+- e
+- o
+- _
+- a
+wrong_letters:
+- i
+- u
+- m
+- b
+- d
+- r

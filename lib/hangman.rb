@@ -1,4 +1,28 @@
+require "yaml"
+
 class Hangman
+	attr_reader :game_saved
+	def initialize
+		@letters = set_alphabet
+		@word = pick_word
+		@guessed_word = set_guessed_word(@word)
+		@wrong_letters = []
+		@game_saved = false
+	end
+
+	def save_game
+		Dir.mkdir("saved_games") unless Dir.exists? "saved_games"
+		puts "What would you like to name your game?"
+		filename = "saved_games/#{gets.chomp}.yml"
+		File.open(filename, "w") { |file| file.puts YAML::dump(self) }
+		@game_saved = true
+	end
+
+	def self.load_game
+			puts "What game would you like to load?"
+			filename = "saved_games/" + gets.chomp + ".yml"
+			YAML::load(File.open(filename))
+	end
 
 	def set_alphabet
 		('a'..'z').to_a
@@ -6,7 +30,7 @@ class Hangman
 
 	def pick_word
 		words = []
-		File.open("5desk.txt").each {|word| words << word[0,word.length - 2] if word.length.between?(5,14)}
+		File.open("5desk.txt").each {|word| words << word[0,word.length - 2].downcase if word.length.between?(5,14)}
 		rand_word = words[rand(0...words.size)].split('')
 	end
 
@@ -16,24 +40,27 @@ class Hangman
 	end
 
 	def check_guess(guess, word)
-		unless @letters.include?(guess)
-			puts "That is not a valid guess, please guess again."
-			guess_letter
+		if guess == "save"
+			save_game
 		else
-			if word.include?(guess)
-				word.each_with_index do |letter, index|
-					if letter == guess
-						update_guessed_word(guess, index)
-					end
-				end
-				puts "Good job! #{show_guessed_word(@guessed_word)}"
+			unless @letters.include?(guess)
+				puts "That is not a valid guess, please guess again."
+				guess_letter
 			else
-				puts "Sorry there is no #{guess}"
-				add_wrong_letters(guess)
+				if word.include?(guess)
+					word.each_with_index do |letter, index|
+						if letter == guess
+							update_guessed_word(guess, index)
+						end
+					end
+					puts "Good job! #{show_guessed_word(@guessed_word)}"
+				else
+					puts "Sorry there is no #{guess}"
+					add_wrong_letters(guess)
+				end
+				@letters.delete(guess)
 			end
-			@letters.delete(guess)
 		end
-
 	end
 
 	def add_wrong_letters(letter)
@@ -79,19 +106,24 @@ class Hangman
 	end
 
 	def play
-		@letters = set_alphabet
-		@word = pick_word
-		@guessed_word = set_guessed_word(@word)
-		@wrong_letters ||= []
-		until game_over?
 			show_guessed_word(@guessed_word)
 			puts "#{guesses_remaining} guesses left"
 			puts "Incorrect letters: #{@wrong_letters}"
 			guess = guess_letter
 			check_guess(guess, @word)
-		end
 	end
 end
 
-game = Hangman.new
-game.play
+puts "Would you like to load a saved game? (yes/no)"
+answer = gets.chomp.downcase[0]
+game = answer == "y" ? Hangman.load_game : Hangman.new
+loop do
+	game.play
+	break if game.game_over? || game.game_saved
+end
+
+
+
+
+
+
